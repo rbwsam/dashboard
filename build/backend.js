@@ -20,6 +20,9 @@ import fs from 'fs';
 import gulp from 'gulp';
 import lodash from 'lodash';
 import path from 'path';
+import runSequence from 'run-sequence';
+import child from 'child_process';
+import q from 'q';
 
 import conf from './conf';
 import goCommand from './gocommand';
@@ -52,7 +55,7 @@ gulp.task('backend', ['package-backend'], function(doneFn) {
  * The production binary difference from development binary is only that it contains all
  * dependencies inside it and is targeted for a specific architecture.
  */
-gulp.task('backend:prod', ['package-backend', 'clean-dist'], function() {
+gulp.task('backend:prod', ['package-backend'], function() {
   let outputBinaryPath = path.join(conf.paths.dist, conf.backend.binaryName);
   return backendProd([[outputBinaryPath, conf.arch.default]]);
 });
@@ -64,7 +67,7 @@ gulp.task('backend:prod', ['package-backend', 'clean-dist'], function() {
  * The production binary difference from development binary is only that it contains all
  * dependencies inside it and is targeted specific architecture.
  */
-gulp.task('backend:prod:cross', ['package-backend', 'clean-dist'], function() {
+gulp.task('backend:prod:cross', ['package-backend'], function() {
   let outputBinaryPaths =
       conf.paths.distCross.map((dir) => path.join(dir, conf.backend.binaryName));
   return backendProd(lodash.zip(outputBinaryPaths, conf.arch.list));
@@ -73,7 +76,19 @@ gulp.task('backend:prod:cross', ['package-backend', 'clean-dist'], function() {
 /**
  * Packages backend code to be ready for tests and compilation.
  */
-gulp.task('package-backend', ['package-backend-source', 'link-vendor']);
+gulp.task('package-backend', function(cb) {
+  runSequence(['package-backend-source', 'link-vendor'], 'embed-frontend', cb);
+});
+
+gulp.task('embed-frontend', function() {
+  return spawnProcess('go-bindata', [
+    '-o',
+    `${conf.paths.backendTmpSrc}/frontend.go`,
+    '-prefix',
+    conf.paths.distFrontend,
+    `${conf.paths.distFrontendPublic}/...`
+  ]);
+});
 
 /**
  * Moves all backend source files (app and tests) to a temporary package directory where it can be
@@ -145,4 +160,22 @@ function backendProd(outputBinaryPathsAndArchs) {
       (pathAndArch) => new Promise(promiseFn(pathAndArch[0], pathAndArch[1])));
 
   return Promise.all(goCommandPromises);
+}
+
+function spawnProcess(processName, args) {
+  let deferred = q.defer();
+  let goTask = child.spawn(processName, args, {
+    stdio: 'inherit'
+  });
+  // Call Gulp callback on task exit. This has to be done to make Gulp dependency management
+  // work.
+  goTask.on('error', console.error);
+  goTask.on('exit', function(code) {
+    if (code !== 0) {
+      deferred.reject(Error(`Backend command error, code: ${code}`));
+      return;
+    }
+    deferred.resolve();
+  });
+  return deferred.promise;
 }

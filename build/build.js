@@ -28,6 +28,7 @@ import gulpUseref from 'gulp-useref';
 import mergeStream from 'merge-stream';
 import path from 'path';
 import uglifySaveLicense from 'uglify-save-license';
+import runSequence from 'run-sequence';
 
 import conf from './conf';
 import {multiDest} from './multidest';
@@ -36,7 +37,9 @@ import {multiDest} from './multidest';
 /**
  * Builds production package for current architecture and places it in the dist directory.
  */
-gulp.task('build', ['backend:prod', 'build-frontend']);
+gulp.task('build', function(cb) {
+  runSequence('clean-dist', 'build-frontend', 'backend:prod', cb);
+});
 
 /**
  * Builds production packages for all supported architectures and places them in the dist directory.
@@ -76,7 +79,7 @@ gulp.task('localize:cross', ['frontend-copies:cross'], function() {
  * Copies the locales configuration to the default arch directory.
  * This configuration file is then used by the backend to localize dashboard.
  */
-gulp.task('locales-for-backend', ['clean-dist'], function() {
+gulp.task('locales-for-backend', function() {
   return localesForBackend([conf.paths.dist]);
 });
 
@@ -84,7 +87,7 @@ gulp.task('locales-for-backend', ['clean-dist'], function() {
  * Copies the locales configuration to each arch directory.
  * This configuration file is then used by the backend to localize dashboard.
  */
-gulp.task('locales-for-backend:cross', ['clean-dist'], function() {
+gulp.task('locales-for-backend:cross', function() {
   return localesForBackend(conf.paths.distCross);
 });
 
@@ -94,7 +97,7 @@ gulp.task('locales-for-backend:cross', ['clean-dist'], function() {
  */
 gulp.task(
     'frontend-copies',
-    ['fonts', 'icons', 'assets', 'dependency-images', 'index:prod', 'clean-dist'], function() {
+    ['fonts', 'icons', 'assets', 'dependency-images', 'index:prod'], function() {
       return createFrontendCopies([path.join(conf.paths.distPre, conf.arch.default, 'public')]);
     });
 
@@ -109,8 +112,7 @@ gulp.task(
       'icons:cross',
       'assets:cross',
       'dependency-images:cross',
-      'index:prod',
-      'clean-dist',
+      'index:prod'
     ],
     function() {
       return createFrontendCopies(
@@ -120,63 +122,63 @@ gulp.task(
 /**
  * Copies assets to the dist directory for current architecture.
  */
-gulp.task('assets', ['clean-dist'], function() {
-  return assets([conf.paths.distPublic]);
+gulp.task('assets', function() {
+  return assets([conf.paths.distFrontendPublic]);
 });
 
 /**
  * Copies assets to the dist directory for all architectures.
  */
-gulp.task('assets:cross', ['clean-dist'], function() {
+gulp.task('assets:cross', function() {
   return assets(conf.paths.distPublicCross);
 });
 
 /**
  * Copies icons to the dist directory for current architecture.
  */
-gulp.task('icons', ['clean-dist'], function() {
-  return icons([conf.paths.distPublic]);
+gulp.task('icons', function() {
+  return icons([conf.paths.distFrontendPublic]);
 });
 
 /**
  * Copies icons to the dist directory for all architectures.
  */
-gulp.task('icons:cross', ['clean-dist'], function() {
+gulp.task('icons:cross', function() {
   return icons(conf.paths.distPublicCross);
 });
 
 /**
  * Copies fonts to the dist directory for current architecture.
  */
-gulp.task('fonts', ['clean-dist'], function() {
-  return fonts([conf.paths.distPublic]);
+gulp.task('fonts', function() {
+  return fonts([conf.paths.distFrontendPublic]);
 });
 
 /**
  * Copies fonts to the dist directory for all architectures.
  */
-gulp.task('fonts:cross', ['clean-dist'], function() {
+gulp.task('fonts:cross', function() {
   return fonts(conf.paths.distPublicCross);
 });
 
 /**
  * Copies images from dependencies to the dist directory for current architecture.
  */
-gulp.task('dependency-images', ['clean-dist'], function() {
-  return dependencyImages([conf.paths.distPublic]);
+gulp.task('dependency-images', function() {
+  return dependencyImages([conf.paths.distFrontendPublic]);
 });
 
 /**
  * Copies images from dependencies to the dist directory for all architectures.
  */
-gulp.task('dependency-images:cross', ['clean-dist'], function() {
+gulp.task('dependency-images:cross', function() {
   return dependencyImages(conf.paths.distPublicCross);
 });
 
 /**
  * Cleans all build artifacts.
  */
-gulp.task('clean', ['clean-dist'], function() {
+gulp.task('clean', function() {
   return del([conf.paths.goWorkspace, conf.paths.tmp, conf.paths.coverage]);
 });
 
