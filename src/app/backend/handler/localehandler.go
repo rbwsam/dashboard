@@ -16,13 +16,14 @@ package handler
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/golang/glog"
 	"golang.org/x/text/language"
+	"github.com/kubernetes/dashboard/src/app/backend/frontend"
+	"github.com/elazarl/go-bindata-assetfs"
 )
 
 const defaultDir = "./public/en"
@@ -46,7 +47,7 @@ type LocaleHandler struct {
 
 // CreateLocaleHandler loads the localization configuration and constructs a LocaleHandler.
 func CreateLocaleHandler() *LocaleHandler {
-	locales, err := getSupportedLocales("./locale_conf.json")
+	locales, err := getSupportedLocales("locale_conf.json")
 	if err != nil {
 		glog.Warningf("Error when loading the localization configuration. Dashboard will not be localized. %s", err)
 		locales = []language.Tag{}
@@ -55,8 +56,8 @@ func CreateLocaleHandler() *LocaleHandler {
 }
 
 func getSupportedLocales(configFile string) ([]language.Tag, error) {
+	localesFile, err := frontend.Asset(configFile)
 	// read config file
-	localesFile, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return []language.Tag{}, err
 	}
@@ -88,7 +89,14 @@ func (handler *LocaleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		acceptLanguage = r.Header.Get("Accept-Language")
 	}
 	dirName := handler.determineLocalizedDir(acceptLanguage)
-	http.FileServer(http.Dir(dirName)).ServeHTTP(w, r)
+	http.FileServer(
+		&assetfs.AssetFS{
+			Asset: frontend.Asset,
+			AssetDir: frontend.AssetDir,
+			AssetInfo: frontend.AssetInfo,
+			Prefix: dirName,
+		},
+	)
 }
 
 func (handler *LocaleHandler) determineLocalizedDir(locale string) string {

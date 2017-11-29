@@ -83,9 +83,11 @@ gulp.task('package-backend', function(cb) {
 gulp.task('embed-frontend', function() {
   return spawnProcess('go-bindata', [
     '-o',
-    `${conf.paths.backendTmpSrc}/frontend.go`,
+    path.join(conf.paths.backendTmpSrc, 'frontend', 'frontend.go'),
     '-prefix',
     conf.paths.distFrontend,
+    '-pkg',
+    'frontend',
     `${conf.paths.distFrontendPublic}/...`
   ]);
 });

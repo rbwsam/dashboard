@@ -35,6 +35,12 @@
   revision = "449fdfce4d962303d702fec724ef0ad181c92528"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/elazarl/go-bindata-assetfs"
+  packages = ["."]
+  revision = "30f82fa23fd844bd5bb1e5f216db87fd77b5eb43"
+
+[[projects]]
   name = "github.com/emicklei/go-restful"
   packages = [".","log"]
   revision = "777bb3f19bcafe2575ffb2a3e46af92509ae9594"
@@ -267,6 +273,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d1211c5ecabc3d025548f3d382657e0fc04e530161dadd74549effdf785b81fa"
+  inputs-digest = "615fc5068c4a0befb636b46544db86a663f83a4401b6d5174470e99926d43bba"
   solver-name = "gps-cdcl"
   solver-version = 1

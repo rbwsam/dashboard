@@ -51,3 +51,7 @@
 [[override]]
   name = "github.com/emicklei/go-restful"
   version = "1.0.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/elazarl/go-bindata-assetfs"
