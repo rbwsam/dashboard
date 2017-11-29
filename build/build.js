@@ -32,6 +32,14 @@ import uglifySaveLicense from 'uglify-save-license';
 import conf from './conf';
 import {multiDest} from './multidest';
 
+import frontend from './lib/frontend';
+
+gulp.task('newbuild', function() {
+  const destination = path.join(conf.paths.tmp, 'frontend', 'production');
+  const tmp = path.join(conf.paths.tmp, 'frontend', 'raw');
+
+  return frontend.build(destination, tmp);
+});
 
 /**
  * Builds production package for current architecture and places it in the dist directory.
