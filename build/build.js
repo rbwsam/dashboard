@@ -80,7 +80,7 @@ gulp.task('localize:cross', ['frontend-copies:cross'], function() {
  * This configuration file is then used by the backend to localize dashboard.
  */
 gulp.task('locales-for-backend', function() {
-  return localesForBackend([conf.paths.dist]);
+  return localesForBackend([conf.paths.distFrontend]);
 });
 
 /**
@@ -98,7 +98,7 @@ gulp.task('locales-for-backend:cross', function() {
 gulp.task(
     'frontend-copies',
     ['fonts', 'icons', 'assets', 'dependency-images', 'index:prod'], function() {
-      return createFrontendCopies([path.join(conf.paths.distPre, conf.arch.default, 'public')]);
+      return createFrontendCopies([conf.paths.distFrontendPublic]);
     });
 
 /**
